@@ -13,6 +13,11 @@ test-results/
 *.jpg
 *.jpeg
 *.webp
+!brag-output/brag.jpg
+
+# launch-video intermediates (regenerable)
+brag-output/composition/renders/
+brag-output/composition/snapshots/
 
 # env & secrets
 .env
