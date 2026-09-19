@@ -18,6 +18,30 @@ await page.addInitScript(() => {
   }).observe({ type: 'layout-shift', buffered: true });
 });
 const report = [];
+const heroRefreshReport = [];
+for (const viewport of [{ width: 375, height: 600 }, { width: 390, height: 640 }]) {
+  await page.setViewportSize(viewport);
+  for (const reducedMotion of ['no-preference', 'reduce']) {
+    await page.emulateMedia({ reducedMotion });
+    await page.goto(baseUrl);
+    for (const load of ['initial', 'refresh']) {
+      if (load === 'refresh') await page.reload();
+      await page.locator('.hero-title > span').first().waitFor();
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForTimeout(1400);
+      const headline = await page.locator('.hero-title > span').evaluateAll(lines => lines.map(line => {
+        const style = getComputedStyle(line);
+        return { text: line.textContent, clip: style.clipPath, opacity: style.opacity, visibility: style.visibility };
+      }));
+      assert.deepEqual(headline.map(line => line.text), ['Let agents', 'land deals.', 'You decide.']);
+      assert.ok(headline.every(line => (line.clip === 'none' || /^inset\(0(?:px|%)?(?: 0(?:px|%)?){0,3}\)$/.test(line.clip)) && Number(line.opacity) === 1 && line.visibility === 'visible'), `Headline hidden on ${load} at ${viewport.width}x${viewport.height} (${reducedMotion}): ${JSON.stringify(headline)}`);
+      assert.equal(await page.evaluate(() => scrollY), 0);
+      assert.ok(await page.locator('.hero-product').evaluate(el => el.getBoundingClientRect().top >= innerHeight), 'Regression case must keep the product demo below the viewport');
+      heroRefreshReport.push({ ...viewport, reducedMotion, load, visible: true });
+    }
+  }
+}
+await page.emulateMedia({ reducedMotion: 'no-preference' });
 
 for (const width of process.env.UI_QUICK ? [375] : [1920, 1440, 1200, 1024, 768, 480, 390, 375]) {
   await page.setViewportSize({ width, height: 900 });

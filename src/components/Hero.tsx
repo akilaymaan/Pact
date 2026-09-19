@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useStepLoop } from "../lib/hooks";
 import { Arrow, Check, StatusBadge } from "../lib/ui";
@@ -17,8 +17,10 @@ export function Hero() {
   const [paused, setPaused] = useState(false);
   const [ref, step] = useStepLoop<HTMLDivElement>(4, 2600, 2200, paused);
   const visible = useInView(ref);
+  const marqueeRef = useRef<HTMLDivElement>(null);
+  const marqueeVisible = useInView(marqueeRef);
   return (
-    <section className={`hero ${paused || !visible ? "motion-paused" : ""}`} id="top">
+    <section className="hero" id="top">
       {/* ambient background */}
       <div className="hero-bg" aria-hidden>
         <div className="hero-grid" />
@@ -46,7 +48,7 @@ export function Hero() {
         </div>
 
         {/* vertical agent pipeline — its own grid column, never overlaps copy */}
-        <div className="hero-product" ref={ref}>
+        <div className={`hero-product ${paused || !visible ? "motion-paused" : ""}`} ref={ref}>
           <div className="hero-product-caption mono"><span>A deal, not another DM.</span><span>Exhibit 001</span></div>
           <div className="hero-workspace panel">
             <div className="workspace-ticket"><span className="mono">Agent-prepared / Your approval required</span><span className="ticket-number" aria-hidden>01</span></div>
@@ -82,7 +84,7 @@ export function Hero() {
         </div>
       </div>
       <div className="hero-principles"><span className="mono">Less coordination. More creation.</span><div><span><Check /> Agents on both sides</span><span><Check /> Human-controlled deals</span><span><Check /> Verified outcomes</span></div><a href="#network" aria-label="Explore the Pact network"><Arrow direction="down" /></a></div>
-      <div className={`workflow-marquee ${paused ? "is-paused" : ""}`}>
+      <div className={`workflow-marquee ${paused || !marqueeVisible ? "is-paused" : ""}`} ref={marqueeRef}>
         <div className="marquee-window" role="region" aria-label="The Pact workflow">
           <div className="marquee-track">{[0, 1].map(copy => <div className="marquee-group" key={copy} aria-hidden={copy === 1}>{JOURNEY.map((stage, i) => <span key={stage}><span className="marquee-index">0{i + 1}</span>{stage}<span className="marquee-cross" aria-hidden>+</span></span>)}</div>)}</div>
         </div>
