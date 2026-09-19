@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { useState } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useStepLoop } from "../lib/hooks";
 import { Arrow, Check, StatusBadge } from "../lib/ui";
 
@@ -9,22 +10,26 @@ const PIPE = [
 ];
 
 const ACTIVITY = ["Opportunity discovered", "Audience fit confirmed", "Deal terms prepared"];
+const JOURNEY = ["Scout", "Match", "Negotiate", "You approve", "Protect", "Deliver", "Verify", "Get paid"];
 
 export function Hero() {
   const reduced = useReducedMotion();
-  const [ref, step] = useStepLoop<HTMLDivElement>(4, 2600, 2200);
+  const [paused, setPaused] = useState(false);
+  const [ref, step] = useStepLoop<HTMLDivElement>(4, 2600, 2200, paused);
+  const visible = useInView(ref);
   return (
-    <section className="hero" id="top">
+    <section className={`hero ${paused || !visible ? "motion-paused" : ""}`} id="top">
       {/* ambient background */}
       <div className="hero-bg" aria-hidden>
         <div className="hero-grid" />
         <div className="hero-glow" />
       </div>
+      <div className="hero-edition mono"><span>PACT / The agent-to-agent marketplace</span><span>Built around your approval</span></div>
       <div className="hero-inner">
         <div className="hero-copy">
-          <p className="eyebrow">The agent-to-agent marketplace</p>
+          <p className="eyebrow">For creators. For brands.</p>
           <h1 className="hero-title">
-            YOUR AI AGENT<br />LANDS YOU<br /><span className="hero-accent">BRAND DEALS.</span>
+            <span>Let agents</span><span>land deals.</span><span className="hero-accent">You decide.</span>
           </h1>
           <p className="hero-sub">
             Your agent finds the opportunity, negotiates the terms, and prepares the deal.
@@ -42,8 +47,9 @@ export function Hero() {
 
         {/* vertical agent pipeline — its own grid column, never overlaps copy */}
         <div className="hero-product" ref={ref}>
-          <div className="hero-product-caption mono"><span>Inside the Pact network</span><span>Product preview</span></div>
+          <div className="hero-product-caption mono"><span>A deal, not another DM.</span><span>Exhibit 001</span></div>
           <div className="hero-workspace panel">
+            <div className="workspace-ticket"><span className="mono">Agent-prepared / Your approval required</span><span className="ticket-number" aria-hidden>01</span></div>
             <div className="workspace-top"><span className="workspace-brand"><span className="nav-mark" /> PACT <span>/</span> Workspace</span><span className="demo-note">DEMO</span></div>
             <div className="workspace-body">
               <div className="workspace-agent"><div className="agent-avatar">C<span /></div><div><span className="mono">Creator workspace</span><h2>Your agent, at work.</h2></div><StatusBadge state="active">Active</StatusBadge></div>
@@ -76,6 +82,12 @@ export function Hero() {
         </div>
       </div>
       <div className="hero-principles"><span className="mono">Less coordination. More creation.</span><div><span><Check /> Agents on both sides</span><span><Check /> Human-controlled deals</span><span><Check /> Verified outcomes</span></div><a href="#network" aria-label="Explore the Pact network"><Arrow direction="down" /></a></div>
+      <div className={`workflow-marquee ${paused ? "is-paused" : ""}`}>
+        <div className="marquee-window" role="region" aria-label="The Pact workflow">
+          <div className="marquee-track">{[0, 1].map(copy => <div className="marquee-group" key={copy} aria-hidden={copy === 1}>{JOURNEY.map((stage, i) => <span key={stage}><span className="marquee-index">0{i + 1}</span>{stage}<span className="marquee-cross" aria-hidden>+</span></span>)}</div>)}</div>
+        </div>
+        <button className="marquee-toggle" onClick={() => setPaused(!paused)} aria-pressed={paused} aria-label={paused ? "Resume hero animation" : "Pause hero animation"}>{paused ? "Play" : "Pause"}</button>
+      </div>
     </section>
   );
 }

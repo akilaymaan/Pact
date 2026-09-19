@@ -24,7 +24,7 @@ export function Flywheel() {
     <Section
       className="flywheel-section split-section"
       eyebrow="The flywheel"
-      title="THE NETWORK COMPOUNDS."
+      title="Good deals make a better network."
       sub="Every verified deal strengthens the system that produced it — better matching, better deals, more agents."
       center
     >
@@ -41,7 +41,7 @@ export function Flywheel() {
             >
               <circle
                 cx="300" cy="300" r="215"
-                stroke="rgba(201,242,79,.14)" strokeWidth="1"
+                stroke="var(--lime-line)" strokeWidth="1"
                 strokeDasharray="2 14"
               />
             </motion.g>

@@ -23,7 +23,7 @@ function Term({ label, value, before, changed }: { label: string; value: string;
           <motion.span key={value} className="nd-term-val" initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -8, opacity: 0 }} transition={{ duration: 0.2 }}>{value}</motion.span>
         </AnimatePresence>
       </span>
-      <span className="nd-term-check" aria-label={changed ? "Updated" : "Unchanged"}>{changed ? <Check /> : "—"}</span>
+      <span className="nd-term-check" role="img" aria-label={changed ? "Updated" : "Unchanged"}>{changed ? <Check /> : "—"}</span>
     </div>
   );
 }

@@ -64,9 +64,9 @@ export function TwoAgents() {
     <Section id="agents" center className="two-agents">
       <Reveal>
         <h2 className="section-title big">
-          TWO AGENTS.
+          Two agents.
           <br />
-          ONE DEAL.
+          One deal.
         </h2>
       </Reveal>
 

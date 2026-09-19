@@ -34,9 +34,9 @@ export function FinalCTA() {
         </Reveal>
         <Reveal delay={0.08}>
           <h2 className="cta-title">
-            LET YOUR AGENT
+            Your agent.
             <br />
-            DO THE WORK.
+            Your next deal.
           </h2>
         </Reveal>
         <Reveal delay={0.16}>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 
 /* ---------- Section shell ---------- */
 
@@ -49,14 +50,15 @@ export function Section({
 
 /* ---------- Scroll-into-view reveal ---------- */
 
-export function Reveal({ children, className }: {
+export function Reveal({ children, className, delay = 0, y = 18, once = true }: {
   children: ReactNode;
   delay?: number;
   y?: number;
   className?: string;
   once?: boolean;
 }) {
-  return <div className={className}>{children}</div>;
+  const reduced = useReducedMotion();
+  return <motion.div className={className} initial={reduced ? false : { opacity: 0.4, y }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once, amount: 0.1 }} transition={{ duration: reduced ? 0 : 0.65, delay: reduced ? 0 : delay, ease: [0.23, 1, 0.32, 1] }}>{children}</motion.div>;
 }
 
 /* ---------- Small shared pieces ---------- */

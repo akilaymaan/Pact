@@ -18,8 +18,8 @@ function Pulse({ x1, y1, x2, y2, delay, lime }: { x1: number; y1: number; x2: nu
       animate={{ x: [x1, x2], y: [y1, y2], opacity: [0, 1, 0] }}
       transition={{ duration: 2.4, repeat: Infinity, delay, ease: "linear", repeatDelay: 0.4 }}
     >
-      <circle r="3.4" fill={lime ? "var(--lime)" : "#e8ecdf"} />
-      <circle r="9" fill="none" stroke={lime ? "var(--lime-line)" : "rgba(233,240,222,.18)"} />
+      <circle r="3.4" fill={lime ? "var(--lime)" : "var(--text)"} />
+      <circle r="9" fill="none" stroke={lime ? "var(--lime-line)" : "var(--line-2)"} />
     </motion.g>
   );
 }
@@ -63,7 +63,7 @@ export function NetworkMap() {
               <motion.path
                 key={i}
                 d={`M ${n.x} ${n.y} L ${C.x} ${C.y}`}
-                stroke={n.kind === "creator" ? "var(--lime-line)" : "rgba(233,240,222,.16)"}
+                stroke={n.kind === "creator" ? "var(--lime-line)" : "var(--line-2)"}
                 strokeWidth="1.2"
                 initial={false}
                 animate={!running ? { pathLength: 1, opacity: 0.5 } : { pathLength: [0.2, 1, 1], opacity: [0.2, 0.8, 0.35] }}

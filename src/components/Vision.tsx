@@ -81,7 +81,7 @@ export function Vision() {
     <Section
       className="vision-section"
       eyebrow="The vision"
-      title="THE INTERNET OF BRAND DEALS, WITH AGENTS DOING THE WORK."
+      title="The internet of brand deals. With agents doing the work."
     >
       <div className="vis-grid">
         {ERAS.map((e, i) => (

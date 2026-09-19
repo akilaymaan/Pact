@@ -1,37 +1,53 @@
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
+const baseUrl = process.env.UI_URL || 'http://localhost:5174/';
+const screenshot = name => join(tmpdir(), name);
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const errors = [];
 const page = await browser.newPage();
 page.on('pageerror', error => errors.push(error.message));
 page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+page.on('response', response => { if (response.status() >= 400 && response.url().startsWith(baseUrl)) errors.push(`${response.status()} ${response.url()}`); });
+await page.addInitScript(() => {
+  window.__layoutShift = 0;
+  new PerformanceObserver(list => {
+    for (const entry of list.getEntries()) if (!entry.hadRecentInput) window.__layoutShift += entry.value;
+  }).observe({ type: 'layout-shift', buffered: true });
+});
 const report = [];
 
-for (const width of process.env.UI_QUICK ? [390] : [1440, 1200, 1024, 768, 480, 390]) {
+for (const width of process.env.UI_QUICK ? [375] : [1920, 1440, 1200, 1024, 768, 480, 390, 375]) {
   await page.setViewportSize({ width, height: 900 });
-  await page.goto('http://localhost:5174/');
+  await page.goto(baseUrl);
   await page.evaluate(() => document.fonts.ready);
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(1200);
+  const fonts = await page.evaluate(() => ['GeistPixelSquare', 'GeistSans', 'GeistMono'].map(family => ({ family, loaded: [...document.fonts].some(font => font.family === family && font.status === 'loaded') })));
+  assert.ok(fonts.every(font => font.loaded), `Font loading failed: ${JSON.stringify(fonts)}`);
+  assert.ok(await page.locator('h1 > span').evaluateAll(lines => lines.every(line => line.scrollWidth <= line.clientWidth + 1)), `Hero text overflows at ${width}`);
+  const layoutShift = await page.evaluate(() => window.__layoutShift);
+  assert.ok(layoutShift < 0.1, `Initial layout shift ${layoutShift} at ${width}`);
   const sections = await page.locator('main > section').count();
   assert.equal(sections, 15);
   const hero = await page.locator('.hero-copy').boundingBox();
   const product = await page.locator('.hero-product').boundingBox();
-  assert.ok(hero.x + hero.width <= product.x + 1 || hero.y + hero.height <= product.y + 1, `Hero overlaps at ${width}`);
+  assert.ok(hero.x + hero.width <= product.x + 1 || product.x + product.width <= hero.x + 1 || hero.y + hero.height <= product.y + 1 || product.y + product.height <= hero.y + 1, `Hero overlaps at ${width}`);
   const overflow = await page.evaluate(() => [...document.querySelectorAll('main *')].filter(el => {
-    if (el.closest('.hero-bg, .cta-bg, .journey-track, .fw-svg, .netmap-svg')) return false;
+    if (el.closest('.hero-bg, .cta-bg, .journey-track, .marquee-track, .fw-svg, .netmap-svg')) return false;
     if (!(el instanceof HTMLElement) || !el.getClientRects().length) return false;
     const r = el.getBoundingClientRect();
     const style = getComputedStyle(el);
     return style.display !== 'none' && style.visibility !== 'hidden' && r.width > 0 && (r.left < -1 || r.right > innerWidth + 1);
   }).map(el => ({ class: el.className, text: el.textContent.slice(0, 45), left: Math.round(el.getBoundingClientRect().left), right: Math.round(el.getBoundingClientRect().right) })));
-  report.push({ width, sections, pageOverflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), overflow });
+  report.push({ width, sections, fonts, layoutShift, pageOverflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), overflow });
   if (width === 1440 || width === 390) {
-    await page.screenshot({ path: `pact-hero-${width}.png` });
+    await page.screenshot({ path: screenshot(`pact-hero-${width}.png`) });
     for (const selector of ['#negotiation', '.flywheel-section', '.activity-section', '#network']) {
       await page.locator(selector).scrollIntoViewIfNeeded();
       await page.waitForTimeout(350);
-      await page.locator(selector).screenshot({ path: `pact-${selector.replace(/[.#]/g, '')}-${width}.png`, style: '.nav, .skip-link { visibility: hidden !important; }' });
+      await page.locator(selector).screenshot({ path: screenshot(`pact-${selector.replace(/[.#]/g, '')}-${width}.png`), style: '.nav, .skip-link { visibility: hidden !important; }' });
     }
   }
   if (width >= 1024) {
@@ -53,7 +69,7 @@ for (const width of process.env.UI_QUICK ? [390] : [1440, 1200, 1024, 768, 480, 
         }).map(el => el.className);
       });
       stageReport.push({ i, name, centered: Math.abs(box.x + box.width / 2 - width / 2) < 2, internalOverflow });
-      if (width === 1440 && [2, 3, 7].includes(i)) await page.screenshot({ path: `pact-journey-${i}.png` });
+      if (width === 1440 && [2, 3, 7].includes(i)) await page.screenshot({ path: screenshot(`pact-journey-${i}.png`) });
     }
     report.push({ width, stages: stageReport });
   } else {
@@ -64,9 +80,8 @@ for (const width of process.env.UI_QUICK ? [390] : [1440, 1200, 1024, 768, 480, 
   }
 }
 
-console.log(JSON.stringify({ report }, null, 2));
 await page.setViewportSize({ width: 1440, height: 900 });
-await page.goto('http://localhost:5174/');
+await page.goto(baseUrl);
 await page.evaluate(() => document.fonts.ready);
 await page.waitForTimeout(400);
 
@@ -104,7 +119,7 @@ assert.equal(await page.locator('.nd-terms').innerText(), pausedTerms);
 await page.getByRole('button', { name: 'Resume demo', exact: true }).click();
 
 await page.emulateMedia({ reducedMotion: 'reduce' });
-await page.goto('http://localhost:5174/');
+await page.goto(baseUrl);
 assert.equal(await page.locator('.m-card').count(), 8);
 assert.equal(await page.locator('.how-sticky').count(), 0);
 await page.locator('.m-card').nth(6).scrollIntoViewIfNeeded();
@@ -117,7 +132,48 @@ await page.locator('.act').scrollIntoViewIfNeeded();
 await page.waitForTimeout(3500);
 assert.equal(await page.locator('.act-list').innerText(), reducedActivity);
 
-console.log(JSON.stringify({ report, errors, interactionTests: 'passed', reducedMotionTests: 'passed' }, null, 2));
+const reducedMarquee = await page.locator('.marquee-track').evaluate(el => getComputedStyle(el).animationName);
+assert.equal(reducedMarquee, 'none');
+assert.equal(await page.locator('.marquee-group[aria-hidden="true"]').isVisible(), false);
+
+await page.emulateMedia({ reducedMotion: 'no-preference' });
+await page.setViewportSize({ width: 375, height: 844 });
+await page.goto(baseUrl);
+await page.getByRole('link', { name: 'Skip to content' }).waitFor();
+await page.keyboard.press('Tab');
+assert.equal(await page.evaluate(() => document.activeElement?.textContent), 'Skip to content');
+await page.keyboard.press('Tab');
+await page.keyboard.press('Tab');
+assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Open menu');
+await page.keyboard.press('Enter');
+assert.equal(await page.getByRole('button', { name: 'Close menu' }).getAttribute('aria-expanded'), 'true');
+await page.keyboard.press('Escape');
+assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Open menu');
+const anchors = await page.locator('a[href^="#"]').evaluateAll(links => links.map(link => link.getAttribute('href')).filter(href => href !== '#'));
+for (const anchor of new Set(anchors)) assert.equal(await page.locator(anchor).count(), 1, `Missing navigation destination ${anchor}`);
+
+await page.getByRole('button', { name: 'Pause hero animation' }).click();
+assert.equal(await page.getByRole('button', { name: 'Resume hero animation' }).getAttribute('aria-pressed'), 'true');
+assert.equal(await page.locator('.marquee-track').evaluate(el => getComputedStyle(el).animationPlayState), 'paused');
+await page.getByRole('button', { name: 'Resume hero animation' }).click();
+
+for (const viewport of [{ width: 1200, height: 720 }, { width: 1024, height: 768 }, { width: 1440, height: 650 }]) {
+  await page.setViewportSize(viewport);
+  await page.goto(baseUrl);
+  await page.evaluate(() => document.fonts.ready);
+  if (viewport.height > 700) {
+    await scrollToStage(0.45);
+    await page.waitForTimeout(900);
+    const card = page.locator('.how-card.is-active');
+    await card.getByRole('button', { name: 'Approve deal', exact: true }).click();
+    assert.match(await card.getByRole('status').innerText(), /approved by you/);
+    await card.getByRole('button', { name: 'Reset demo' }).click();
+    const body = card.locator('.how-card-body');
+    assert.equal(await body.evaluate(el => el.scrollWidth > el.clientWidth + 1), false);
+  } else assert.equal(await page.locator('.m-card').count(), 8);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+}
+console.log(JSON.stringify({ report, errors, interactionTests: 'passed', reducedMotionTests: 'passed', keyboardAndNavigationTests: 'passed', shortViewportTests: 'passed' }, null, 2));
 await browser.close();
 assert.equal(errors.length, 0, 'Browser errors found');
 assert.ok(report.every(r => !r.pageOverflow && (!r.overflow || r.overflow.length === 0)), 'Responsive overflow found');

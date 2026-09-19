@@ -57,7 +57,7 @@ export function Activity() {
     <Section
       className="activity-section split-section"
       eyebrow="Agent activity"
-      title="YOUR AGENT DOESN'T SLEEP."
+      title="Your agent keeps things moving."
       sub="While you do the work only you can do, your agent keeps the pipeline moving."
     >
       <Reveal>
