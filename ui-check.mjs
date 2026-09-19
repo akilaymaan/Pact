@@ -48,7 +48,7 @@ for (const width of process.env.UI_QUICK ? [375] : [1920, 1440, 1200, 1024, 768,
   await page.goto(baseUrl);
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(1200);
-  const fonts = await page.evaluate(() => ['GeistPixelSquare', 'DM Sans', 'GeistMono'].map(family => ({ family, loaded: [...document.fonts].some(font => font.family === family && font.status === 'loaded') })));
+  const fonts = await page.evaluate(() => ['DM Sans'].map(family => ({ family, loaded: [...document.fonts].some(font => font.family === family && font.status === 'loaded') })));
   assert.ok(fonts.every(font => font.loaded), `Font loading failed: ${JSON.stringify(fonts)}`);
   assert.ok(await page.locator('h1 > span').evaluateAll(lines => lines.every(line => line.scrollWidth <= line.clientWidth + 1)), `Hero text overflows at ${width}`);
   const layoutShift = await page.evaluate(() => window.__layoutShift);
@@ -191,6 +191,7 @@ for (const viewport of [{ width: 1200, height: 720 }, { width: 1024, height: 768
     const card = page.locator('.how-card.is-active');
     await card.getByRole('button', { name: 'Approve deal', exact: true }).click();
     assert.match(await card.getByRole('status').innerText(), /approved by you/);
+    await card.locator('.how-card-body').evaluate(el => { el.scrollTop = el.scrollHeight; });
     await card.getByRole('button', { name: 'Reset demo' }).click();
     const body = card.locator('.how-card-body');
     assert.equal(await body.evaluate(el => el.scrollWidth > el.clientWidth + 1), false);

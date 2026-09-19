@@ -45,9 +45,9 @@
   --lime-line: rgba(204, 219, 255, 0.4);
   --lime-glow: rgba(204, 219, 255, 0.12);
   --red: #d7b1a8;
-  --font-d: "GeistPixelSquare", monospace;
+  --font-d: "DM Sans", sans-serif;
   --font-b: "DM Sans", Arial, sans-serif;
-  --font-m: "GeistMono", monospace;
+  --font-m: "DM Sans", monospace;
   --radius-s: 0px;
   --radius: 0px;
   --radius-l: 17px;
@@ -178,7 +178,7 @@ body::before {
   min-height: 56px;
   padding: 16px 26px;
   border-radius: 0;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-b);
   font-size: 18px;
   font-weight: 400;
   line-height: 1;

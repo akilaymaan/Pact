@@ -287,7 +287,7 @@
 .match-attribute svg { color: var(--lime); }
 .neg-transcript strong, .proposal-head, .deliver-check, .getpaid-loop, .m-loop, .proposal-reset { color: var(--text); }
 .neg-bubble { font-size: 13px; }
-.pact-btn { font-family: Arial, sans-serif; color: var(--text); }
+.pact-btn { font-family: var(--font-b); color: var(--text); }
 .pact-btn.approve { background: var(--lime); color: var(--blue); }
 .pact-btn.approve:disabled { background: var(--panel-3); color: var(--lime); border-color: var(--lime-line); }
 .approve-statement { font: 400 clamp(24px, 2.6vw, 38px)/1.04 var(--font-d); letter-spacing: 0; }
