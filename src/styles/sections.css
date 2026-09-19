@@ -401,14 +401,14 @@
 .vis-diagram { height: 112px; }
 .vis-arrow { margin-inline: 12px; }
 
-.cta { background: var(--ink); padding-block: 108px 144px; text-align: left; border-top: none; }
+.cta { background: var(--ink); padding-block: 108px 144px; text-align: center; border-top: none; }
 .cta-inner { max-width: var(--wrap); margin: auto; border: 1px solid #ffffff40; padding: clamp(26px, 6vw, 90px); }
 .cta-inner::before, .cta-inner::after { content: "+"; position: absolute; color: #a8aed9; font: 26px/1 var(--font-m); }
 .cta-inner::before { top: -14px; left: -9px; }
 .cta-inner::after { bottom: -12px; right: -9px; }
 .cta-title { font: 400 clamp(48px, 7.8vw, 120px)/0.98 var(--font-d); letter-spacing: -0.01em; margin-block: 34px; }
 .cta-sub { font-size: 16px; }
-.cta-actions { justify-content: flex-start; margin-top: 34px; }
+.cta-actions { justify-content: center; margin-top: 34px; }
 .cta-bg { opacity: 0.18; }
 .cta-ring { border-radius: 0; transform: rotate(45deg); }
 .footer { padding-top: 72px; }
